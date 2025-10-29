@@ -1,0 +1,69 @@
+import { db } from '../src/utils/db.server'
+
+type Author = {
+  firstName: string
+  lastName: string
+}
+
+type Product = {
+  title: string
+  isFiction: boolean
+  datePublish: Date
+}
+
+const getAuthor = (): Array<Author> => {
+  return [
+    { firstName: 'Anjas', lastName: 'Fedo' },
+    { firstName: 'Fedo', lastName: 'Anjas' },
+    { firstName: 'Go', lastName: 'Lang' }
+  ]
+}
+
+const getProduct = (): Array<Product> => {
+  return [
+    { title: 'Sapi', isFiction: false, datePublish: new Date() },
+    { title: 'Ayam', isFiction: true, datePublish: new Date() },
+    { title: 'Geprek', isFiction: true, datePublish: new Date() }
+  ]
+}
+
+const seed = async () => {
+  await Promise.all(
+    getAuthor().map((author) => {
+      return db.author.create({
+        data: {
+          firstName: author.firstName,
+          lastName: author.lastName
+        }
+      })
+    })
+  )
+
+  const author = await db.author.findFirst({
+    where: {
+      firstName: 'Anjas'
+    }
+  })
+
+  if (!author) {
+    console.error('Author not found')
+    return
+  }
+
+  await Promise.all(
+    getProduct().map((product) => {
+      const { title, isFiction, datePublish } = product
+
+      return db.product.create({
+        data: {
+          title,
+          isFiction,
+          datePublish,
+          authorID: author.ID
+        }
+      })
+    })
+  )
+}
+
+seed()
